@@ -3,17 +3,18 @@
 FROM gentoo/stage3-amd64
 LABEL Base system to run Trac in a Gentoo environment
 
-# The following increases the image size by 800MB+. An idea is to squash the
-# image after it is build, save it under an alternate image name, and build
-# other Trac images or containers from it.
-RUN emerge-webrsync -q
-
-# A few base and useful packages.
 RUN echo 'USE="$USE sqlite"' >> /etc/portage/make.conf
-RUN emerge -q app-portage/eix app-portage/gentoolkit app-editors/vim \
-              net-misc/curl
-RUN emerge -q www-servers/apache www-apache/mod_wsgi www-apps/trac
-RUN eselect news read --quiet
+RUN echo 'MAKEOPTS="-j2"' >> /etc/portage/make.conf
+
+# Install packages and immediately remove the portage tree to avoid increasing
+# the image size too much. The user should mount a volume at this location
+# instead to have the portage tree stored locally on the host OS.
+RUN emerge-webrsync -q && \
+    emerge -q app-portage/eix app-portage/gentoolkit app-editors/vim \
+              net-misc/curl www-servers/apache www-apache/mod_wsgi \
+              www-apps/trac && \
+    eselect news read --quiet && \
+    rm -fr /usr/portage
 
 RUN sed -i -e ' \
         /^APACHE2_OPTS/ { \
@@ -44,4 +45,7 @@ COPY trac.wsgi /var/www/localhost/cgi-bin/
 COPY run.sh /usr/local/sbin/
 COPY Dockerfile /.Dockerfile
 EXPOSE 80 443
+VOLUME /usr/portage
+VOLUME /usr/local/portage
+VOLUME /var/tmp/portage
 CMD /usr/local/sbin/run.sh
