@@ -1,7 +1,10 @@
 # Copyright (c) 2015, Alexandre Hamelin <alexandre.hamelin gmail.com>
 
 FROM gentoo/stage3-amd64
-LABEL Base system to run Trac in a Gentoo environment
+MAINTAINER Alexandre Hamelin <alexandre.hamelin gmail.com>
+LABEL description="Base system to run Trac in a Gentoo environment" \
+      copyright="(c) 2015, Alexandre Hamelin <alexandre.hamelin gmail.com>" \
+      license="MIT"
 
 RUN echo 'USE="$USE sqlite"' >> /etc/portage/make.conf
 RUN echo 'MAKEOPTS="-j2"' >> /etc/portage/make.conf
