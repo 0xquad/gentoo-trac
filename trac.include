@@ -11,9 +11,9 @@
             Allow from all
         </Directory>
 
-        WSGIScriptAlias /trac /var/www/localhost/cgi-bin/trac.wsgi
+        WSGIScriptAlias /trac /var/www/localhost/trac/cgi-bin/trac.wsgi
 
-        <Directory /var/www/localhost/cgi-bin>
+        <Directory /var/www/localhost/trac/cgi-bin>
             <Files trac.wsgi>
                 WSGIApplicationGroup %{GLOBAL}
                 Order deny,allow
