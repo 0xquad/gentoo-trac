@@ -50,10 +50,6 @@ RUN chmod g+rw /var/www/localhost/trac/{db/trac.db,conf/trac.ini}
 COPY trac.include /etc/apache2/vhosts.d/
 COPY trac.wsgi /var/www/localhost/cgi-bin/
 COPY run.sh /usr/local/sbin/
-COPY Dockerfile /.Dockerfile
 EXPOSE 80 443
-VOLUME /usr/portage
-VOLUME /usr/local/portage
-VOLUME /var/tmp/portage
 VOLUME /var/www/localhost/trac/db
 CMD /usr/local/sbin/run.sh
