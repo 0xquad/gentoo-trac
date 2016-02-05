@@ -6,18 +6,23 @@ LABEL description="Base system to run Trac in a Gentoo environment" \
       copyright="(c) 2015, Alexandre Hamelin <alexandre.hamelin gmail.com>" \
       license="MIT"
 
-RUN sed -i -e 's/-\*//' /etc/portage/make.conf
+ARG GENTOO_MIRRORS
+ARG REVERT
+
+RUN sed -i -e '/^USE=/ s/-\*//' \
+           -e '/GENTOO_MIRRORS=/d' \
+           -e '/USE_PYTHON=/ s/3\.4/2.7 3.4/' \
+           -e '/PYTHON_TARGETS=/ s/python3_4/python2_7 python3_4/' /etc/portage/make.conf
 RUN echo 'USE="$USE sqlite"' >> /etc/portage/make.conf
-RUN sed -i -e '/USE_PYTHON/ s/3\.4/2.7 3.4/' \
-           -e '/PYTHON_TARGETS/ s/python3_4/python2_7 python3_4/' /etc/portage/make.conf
+RUN echo "GENTOO_MIRRORS=\"$GENTOO_MIRRORS\"" >> /etc/portage/make.conf
 
 # Install packages and immediately remove the portage tree to avoid increasing
 # the image size too much. The user should mount a volume at this location
 # instead to have the portage tree stored locally on the host OS.
-RUN emerge-webrsync -q && \
+RUN emerge-webrsync -q ${REVERT:+--revert=$REVERT} && \
     emerge -q www-servers/apache www-apache/mod_wsgi www-apps/trac && \
     eselect news read --quiet && \
-    rm -fr /usr/portage
+    rm -fr /usr/portage/.
 
 RUN sed -i -e ' \
         /^APACHE2_OPTS/ { \
