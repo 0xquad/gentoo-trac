@@ -25,17 +25,8 @@ COPY sync.sh /usr/local/bin/
 # http://172.17.0.1:8000/. Since we are using gentoo-minimal, /usr/portage is
 # already a volume so the size of the resulting image is minimally increased.
 RUN sync.sh "${MIRROR}" "${DATE}" "${FMT}" && \
-    emerge -q www-servers/apache www-apache/mod_wsgi www-apps/trac && \
-    eselect news read --quiet
-
-RUN sed -i -e ' \
-        /^APACHE2_OPTS/ { \
-            s/-D INFO //; \
-            s/-D STATUS //; \
-            s/-D/-D APP_TRAC -D WSGI -D/ }' \
-    /etc/conf.d/apache2
-RUN sed -i -e '/LoadModule/ a WSGIDaemonProcess app01 processes=1 threads=10' /etc/apache2/modules.d/70_mod_wsgi.conf
-RUN echo 'Include /etc/apache2/vhosts.d/trac.include' >> /etc/apache2/vhosts.d/default_vhost.include
+    emerge -q dev-python/pip www-apps/trac
+RUN pip install uwsgi
 
 RUN (echo; echo) | trac-admin ${TRAC_ROOT} initenv
 RUN trac-admin ${TRAC_ROOT} component remove component1 && \
@@ -52,7 +43,6 @@ RUN chgrp -R apache ${TRAC_ROOT}/{db,log,files,conf,plugins}
 RUN chmod g+rwx ${TRAC_ROOT}/{db,log,files,conf,plugins}
 RUN chmod g+rw ${TRAC_ROOT}/{db/trac.db,conf/trac.ini}
 
-COPY trac.include /etc/apache2/vhosts.d/
 COPY trac.wsgi ${TRAC_ROOT}/cgi-bin/
 COPY run.sh /usr/local/sbin/
 EXPOSE 80 443
