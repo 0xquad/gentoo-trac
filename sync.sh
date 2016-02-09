@@ -14,5 +14,5 @@ bz2) util=bzcat;;
 esac 
 
 trap "rm -f $file*" EXIT
-wget -t 5 -T 5 -q "$base_url.md5sum" "$base_url.gpgsig" "$base_url" || exit 1
+wget -t 5 -T 5 -q "$base_url" || exit 1
 $util $file | tar xf - -C /usr 
