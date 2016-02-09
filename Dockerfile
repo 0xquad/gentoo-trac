@@ -9,7 +9,7 @@ LABEL description="Base system to run Trac in a Gentoo environment" \
 ARG MIRROR
 ARG DATE
 ARG FMT
-ARG TRAC_ROOT=/var/www/localhost/trac
+ARG TRAC_ROOT=/trac
 
 RUN sed -i -e '/^USE=/ s/-\*//' \
            -e '/USE_PYTHON=/ s/3\.4/2.7 3.4/' \
@@ -25,8 +25,10 @@ COPY sync.sh /usr/local/bin/
 # http://172.17.0.1:8000/. Since we are using gentoo-minimal, /usr/portage is
 # already a volume so the size of the resulting image is minimally increased.
 RUN sync.sh "${MIRROR}" "${DATE}" "${FMT}" && \
+    emerge -q1 dev-lang/python && \
     emerge -q dev-python/pip www-apps/trac
-RUN pip install uwsgi
+RUN eselect python set python2.7
+RUN pip install trac
 
 RUN (echo; echo) | trac-admin ${TRAC_ROOT} initenv
 RUN trac-admin ${TRAC_ROOT} component remove component1 && \
@@ -39,12 +41,7 @@ RUN trac-admin ${TRAC_ROOT} component remove component1 && \
     trac-admin ${TRAC_ROOT} milestone remove milestone4
 RUN trac-admin ${TRAC_ROOT} permission add anonymous TRAC_ADMIN
 RUN mkdir ${TRAC_ROOT}/{files,cgi-bin}
-RUN chgrp -R apache ${TRAC_ROOT}/{db,log,files,conf,plugins}
-RUN chmod g+rwx ${TRAC_ROOT}/{db,log,files,conf,plugins}
-RUN chmod g+rw ${TRAC_ROOT}/{db/trac.db,conf/trac.ini}
 
-COPY trac.wsgi ${TRAC_ROOT}/cgi-bin/
-COPY run.sh /usr/local/sbin/
 EXPOSE 80 443
 VOLUME ${TRAC_ROOT}/db
-CMD /usr/local/sbin/run.sh
+CMD ["tracd", "-s", "${TRAC_ROOT}"]
